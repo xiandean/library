@@ -1,0 +1,162 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <!--申明当前页面的编码集-->
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <!--网页标题-->
+    <title>图片上传与合成</title>
+    <!--网页关键词-->
+    <meta name="keywords" content="人保,毕业证书" />
+    <!--网页描述-->
+    <meta name="description" content="人保,毕业证书" />
+    <!--适配当前屏幕-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <!--禁止自动识别电话号码-->
+    <meta name="format-detection" content="telephone=no" />
+    <!--禁止自动识别邮箱-->
+    <meta content="email=no" name="format-detection" />
+    <!--iphone中safari私有meta标签,允许全屏模式浏览,隐藏浏览器导航栏-->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <!--iphone中safari顶端的状态条的样式black(黑色)-->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <style type="text/css">
+    /*reset 重置*/
+    body,ul,ol,p,h1,h2,h3,h4,h5,dl,dd,form,input,textarea,
+    td,th,button,strong,em,select,video,canvas{margin:0;padding:0;}
+    li{list-style:none;vertical-align:top;}
+    table{ border-collapse:collapse;}
+    textarea{resize:none;overflow:auto;}
+    img{ border:none; vertical-align:middle;}
+    em{ font-style:normal;}
+    a{ text-decoration:none;}
+    a,input,div,img{
+    -webkit-appearance: none;/*屏蔽阴影*/
+    -webkit-tap-highlight-color:rgba(0,0,0,0);
+    /*ios android去除自带阴影的样式*/
+    }
+    select, input, textarea { vertical-align: middle; outline-style: none; margin: 0; border: none; background: transparent;}
+    a, img {
+    /* 禁止长按链接与图片弹出菜单 */
+    -webkit-touch-callout: none; 
+     
+    }
+    html, body {
+    /* 禁止选中文本(如无文本选中需求,此为必选项) */
+    -webkit-user-select: none;  
+    user-select: none;
+    }
+    /*public*/
+    html {
+    font-size : 20px;
+    }
+    @media only screen and (min-width: 401px){
+    html {
+    font-size: 25px !important;
+    }
+    }
+    @media only screen and (min-width: 428px){
+    html {
+    font-size: 26.75px !important;
+    }
+    }
+    @media only screen and (min-width: 481px){
+    html {
+    font-size: 30px !important; 
+    }
+    }
+    @media only screen and (min-width: 569px){
+    html {
+    font-size: 35px !important; 
+    }
+    }
+    @media only screen and (min-width: 641px){
+    html {
+    font-size: 40px !important; 
+    }
+    }
+    html{-ms-touch-action: none;}/* 阻止windows Phone 的默认触摸事件 */
+    body{
+    font-family: "Helvetica Neue", Helvetica, "STHeiTi", sans-serif; 
+    overflow-x:hidden; overflow-y:auto; font-size:0.7rem;
+    }
+    .clear{zoom:1;}
+    .clear:after{content:''; display:block; clear:both;}
+    .fl{float:left;}
+    .fr{float:right;}
+    .posa{position:absolute}
+    .viewport{ max-width:640px; margin:0 auto; overflow-x:hidden;}
+    .hide{ display: none;}
+    /*开启硬件加速*/
+    .GPU{-webkit-transform: translate3d(0, 0, 0); -moz-transform: translate3d(0, 0, 0); -ms-transform: translate3d(0, 0, 0); transform: translate3d(0, 0, 0);}
+    /*消除transition闪屏*/
+    .cancle-transition-flash {-webkit-backface-visibility: hidden; backface-visibility: hidden; -webkit-perspective: 1000; perspective: 1000;}
+    html,body{width:100%;height:100%;}
+    
+    #gestureArea {
+        width: 268px;
+        height: 252px;
+        background: url("images/bg.png");
+        background-size: cover;
+        overflow: hidden;
+        margin: 20px auto;
+        position: relative;
+    }
+    #mergeCanvas {
+        display: block;
+        margin: 0 auto;
+    }
+    #chooseButton {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+    }
+    #uploadCanvas {
+        display: block;
+        width: 189px;
+        height: 145px;
+        margin-left: 45px;
+        margin-top: 29px;
+        background: #ff0;
+    }
+    #uploadButton {
+        width: 100px;
+        height: 50px;
+        margin: 20px auto;
+        background: #f00;
+        color: #fff;
+        font-size: 30px;
+        text-align: center;
+        line-height: 50px;
+    }
+    </style>
+    <!-- <link rel="stylesheet" href="css/style.css"> -->
+</head>
+
+<body>
+    <div id="gestureArea">
+        <div id="uploadCanvas">
+            <div id="uploadButton">拖这里</div>
+        </div>
+    </div>
+    
+</body>
+
+<script src="../js/dragDom.js"></script>
+<script>
+document.addEventListener("touchmove",function(){
+    event.preventDefault();
+});
+
+var drag = new Drag({
+    element: document.querySelector("#uploadButton"), //element: 需拖动的dom元素
+    // limitedElement: document // 拖动不能超出的限制，不填默认为父级元素
+});
+</script>
+</html>
+ 
+
+
+ 

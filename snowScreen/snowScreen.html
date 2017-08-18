@@ -1,0 +1,89 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <!--申明当前页面的编码集-->
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <!--网页标题-->
+    <title>测试</title>
+    <!--网页关键词-->
+    <meta name="keywords" content="" />
+    <!--网页描述-->
+    <meta name="description" content="" />
+    <!--适配当前屏幕-->
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" /> -->
+    <meta content="target-densitydpi=device-dpi,width=640" name="viewport">
+    <!--禁止自动识别电话号码-->
+    <meta name="format-detection" content="telephone=no" />
+    <!--禁止自动识别邮箱-->
+    <meta content="email=no" name="format-detection" />
+    <!--iphone中safari私有meta标签,允许全屏模式浏览,隐藏浏览器导航栏-->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <!--iphone中safari顶端的状态条的样式black(黑色)-->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <!-- <link rel="stylesheet" href="http://guangdong.sinaimg.cn/subject/2015/0424/jr/css/swiper.min.css"> -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        html,body{width:100%;height:100%; overflow: hidden;}
+        #myCanvas {
+            background: #000;
+        }
+    </style>
+    <script src="http://guangdong.sinaimg.cn/subject/2016/0705/MetaHandler.js"></script>
+</head>
+<body>
+ 
+<canvas id="myCanvas"></canvas>
+ 
+<script src="http://static.m3guo.com/video/v1/createjs/createjs/createjs-min.js"></script>
+<script src="../js/snowScreen.js"></script>
+<script>
+    //do it
+    //定义预加载图片数组对象，执行loading模块
+    var manifest = [{
+        id: "leaf_01",
+        src: "images/leaf_01.png"
+    },{
+        id: "leaf_02",
+        src: "images/leaf_02.png"
+    },{
+        id: "leaf_03",
+        src: "images/leaf_03.png"
+    },{
+        id: "leaf_04",
+        src: "images/leaf_04.png"
+    },{
+        id: "leaf_05",
+        src: "images/leaf_05.png"
+    },{
+        id: "leaf_06",
+        src: "images/leaf_06.png"
+    },{
+        id: "leaf_07",
+        src: "images/leaf_07.png"
+    }];
+    var preload = new createjs.LoadQueue(false);
+    preload.on("complete",completeHandler);
+    preload.loadManifest(manifest);
+    function completeHandler(e){
+        var snowImageArr = [];
+        for(var i in manifest) {
+            snowImageArr.push(preload.getResult(manifest[i].id));
+        }
+        var stage = new snowScreen({
+            canvasId: "myCanvas",
+            snowImages: snowImageArr,
+            snowNum: 100
+        });
+        stage.start();
+        // setTimeout(function(){
+        //     stage.stop();
+        // },2000);
+    }
+
+
+</script>
+</body>
+</html>
