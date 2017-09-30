@@ -1,0 +1,130 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <!--申明当前页面的编码集-->
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <!--网页标题-->
+    <title>微博/微信接口</title>
+    <!--网页关键词-->
+    <meta name="keywords" content="" />
+    <!--网页描述-->
+    <meta name="description" content="" />
+    <!--适配当前屏幕-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0,minimum-scale=1.0, user-scalable=0" />
+    <!--禁止自动识别电话号码-->
+    <meta name="format-detection" content="telephone=no" />
+    <!--禁止自动识别邮箱-->
+    <meta content="email=no" name="format-detection" />
+    <!--iphone中safari私有meta标签,允许全屏模式浏览,隐藏浏览器导航栏-->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <!--iphone中safari顶端的状态条的样式black(黑色)-->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <script src="http://guangdong.sinaimg.cn/subject/2016/0524/zepto.min.js"></script>
+    <script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+    <script>   
+        var api = {
+            // 投票接口 ids: 多个id用","拼接; names: 多个name用","拼接
+            vote: function(ids,names,callback) {
+                if(this.votting) {
+                    return false;
+                }
+                this.votting = true;
+                var _this = this;
+                var ids = ids + "";
+                var idsArr = ids.split(",");
+                var namesArr = names.split(",");
+                var maxLen = idsArr.length;
+                var votedLen = 0;
+                if(maxLen == 0) {
+                    this.votting = false;
+                    return;
+                }
+                for(var i = 0; i < idsArr.length; i++) {
+                    var id = idsArr[i];
+                    var name = namesArr[i];
+                    post(id,name);
+                }
+                function post(id,name) {
+                    $.ajax({
+                        url: "http://news.gd.sina.com.cn/market/c/interfaceclick2015/click",              //请求地址
+                        type: "get",                       //请求方式
+                        data: {id: id, type: 3,ttype: 1},        //请求参数 type：类别【1，微博UID；2，微信openid；3，ip地址】，默认为 3;ttype：点击是否启用次数限制【1，不启用次数，2，启用永久性次数限制；3，启动当天次数限制】，可不传，默认为1;number：【启动次数限制，此参数才有效，默认为 5次】; uid：微博UID/微信openid【注：类别选IP地址时，此参数不需要传递】
+                        dataType: "jsonp",
+                        success: function (data) {
+                        // 此处放成功后执行的代码
+                            // console.log(data);
+                            if (data.error === 0) {
+                                console.log(id);
+                                votedLen++;
+                                if(votedLen == maxLen) {
+                                    callback && callback();
+                                }
+                            } else if (data.error === 5) {
+                                votedLen++;
+                                alert('投票"'+name+'"太过频繁!');
+                            } else if (data.error === 6) {
+                                votedLen++;
+                                alert('你已经投过"'+name+'"了!');
+                            } else {
+                                votedLen++;
+                                alert('投票"'+name+'"失败!');
+                            }
+                            if(votedLen == maxLen) {
+                                _this.votting = false;
+                            }
+                        },
+                        error: function (data) {
+                        // 此处放失败后执行的代码
+                            console.log(data);
+                            votedLen++;
+                            if(votedLen == maxLen) {
+                                _this.votting = false;
+                            }
+                        }
+                    });
+                }
+            },
+            // 获取点赞数量  ids: 多个id用","拼接
+            getVote: function(ids,callback) {
+                if(this.getVotting) {
+                    return false;
+                }
+                this.getVotting = true;
+                var _this = this;
+                $.ajax({
+                    url: "http://news.gd.sina.com.cn/market/c/interfaceclick2015/clicklist",              //请求地址
+                    type: "get",                       //请求方式
+                    data: {id: ids},        //请求参数
+                    dataType: "jsonp",
+                    success: function (data) {
+                    // 此处放成功后执行的代码
+                        // console.log(data);
+                        if (data.error === 0) {
+                            callback && callback(data.data);
+                        }
+                        _this.getVotting = false;
+                    },
+                    error: function (data) {
+                    // 此处放失败后执行的代码
+                        console.log(data);
+                        _this.getVotting = false;
+                    }
+                });
+            }
+        };
+
+
+        api.vote("160,161,162,163","用户名160,用户名161,用户名162,用户名163",function(){
+            alert("投票成功!");
+            api.getVote("160,161,162,163",function(data){
+                console.log(data);
+            });
+        });
+
+
+    </script>
+</head>
+<body>
+投票接口
+</body>
+</html>

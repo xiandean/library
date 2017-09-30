@@ -1,0 +1,588 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <!--申明当前页面的编码集-->
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <!--网页标题-->
+    <title>微博/微信接口</title>
+    <!--网页关键词-->
+    <meta name="keywords" content="" />
+    <!--网页描述-->
+    <meta name="description" content="" />
+    <!--适配当前屏幕-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0,minimum-scale=1.0, user-scalable=0" />
+    <!--禁止自动识别电话号码-->
+    <meta name="format-detection" content="telephone=no" />
+    <!--禁止自动识别邮箱-->
+    <meta content="email=no" name="format-detection" />
+    <!--iphone中safari私有meta标签,允许全屏模式浏览,隐藏浏览器导航栏-->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <!--iphone中safari顶端的状态条的样式black(黑色)-->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <script src="http://guangdong.sinaimg.cn/subject/2016/0524/zepto.min.js"></script>
+    <script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+    <script>   
+        var api = {
+            openid: "", //api.openid 接口唯一码
+            openidType: 0, //api.openidType: 0(无),1(微博),2(微信)
+            getQueryString: function (name) { // 获取url中的get参数
+                var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+                var url = window.location.search.replace(/&amp;(amp;)?/g,"&");
+                var r = url.substr(1).match(reg);
+                if (r != null) { 
+                    return unescape(r[2]); 
+                }
+                return null;
+            },
+            //随机码绑定
+            uidBind: function (callback){ 
+                var _this = this;
+                this.openid = localStorage.getItem("code_openid");
+                if (!this.openid) {
+                    $.ajax({
+                        url : '',
+                        dataType : 'jsonp',
+                        success : function (data) {
+                            // console.log(data);
+                            if (data.error == 0) {
+                                _this.openid = data.data;
+                                localStorage.setItem("code_openid",data.data);
+                                // console.log(_this.openid);
+                            } 
+                        }
+                    });
+                } 
+            },
+
+            // 微信绑定,只能在微信上打开,需用到getQueryString(name); demo: weixinBind(function(){alert(openid);});
+            weixinBind: function (callback){
+                if(localStorage.getItem("wx_openid") != null){
+                    this.openid = localStorage.getItem("wx_openid");
+                    callback&&callback();
+                }else if(this.getQueryString("openid")){
+                    this.openid = this.getQueryString("openid");
+                    localStorage.setItem("wx_openid", this.openid);
+                    callback&&callback();
+                }else {
+                    if(this.getQueryString("oid")){
+                        window.location.href='http://news.gd.sina.com.cn/market/c/gdwx/wxcode?oid='+this.getQueryString("oid");
+                    }else {
+                        window.location.href='http://news.gd.sina.com.cn/market/c/gdwx/wxcode';
+                    }
+                }   
+            },
+
+            // 微博绑定; demo: weiboBind(function(){alert(openid);});
+            weiboBind: function (callback){
+                var _this = this;
+                $.ajax({
+                    url: "http://mblogv2.city.sina.com.cn/interface/tcommonv2/no_auth/user/json_get_current_user_info_new.php",
+                    data: { 
+                        app_id: 196,
+                        t:'jsonp',  
+                    },
+                    dataType:"jsonp", 
+                    success: function(d) {
+                        // console.log(d);
+                        if(d.error == 1){
+                            window.location.href = "http://login.weibo.cn/login/setssocookie/?loginpage=h5&backUrl="+location.href;
+                        }else if(d.data.errno == 1){
+                            _this.openid = d.current_uid;
+                            callback&&callback();
+                        }
+                        
+                    },
+                    error: function(d) {
+                        console.log(d);
+                    }
+                });
+            },
+
+            // 是否在微信上打开
+            isWeixin: function (){  
+                var ua = navigator.userAgent.toLowerCase();  
+                if(ua.match(/MicroMessenger/i)=="micromessenger") {  
+                    return true;  
+                }else {  
+                    return false;  
+                }  
+            },
+
+            // 微信\微博双向绑定,需用到getQueryString(name)、isWeixin()、weixinBind(callback)、weiboBind(callback);
+            doubleBind: function (callback){
+                if(this.isWeixin()) {
+                    this.openidType = 2;
+                    this.weixinBind(callback);
+                }else {
+                    this.openidType = 1;
+                    this.weiboBind(callback);
+                }
+            },
+
+            // 微信分享,shareData:{link: "http://gd.sina.com.cn/m/2016/hzlh/index.html", title: "分享标题", desc: "分享描述", imgUrl: "http://guangdong.sinaimg.cn/2016/1022/U12799P693DT20161022231007.jpg" }
+            weixinShare: function (shareData,callback){
+                $.ajax({
+                    url:"http://news.gd.sina.com.cn/market/c/gd/wxjsapi/index.php",
+                    data: {
+                        url: location.href.split('#')[0]
+                    },
+                    dataType:"jsonp",
+                    success:function(jsondata){
+                        wx.config({
+                            debug: false,
+                            appId: jsondata.data.appId,
+                            timestamp: jsondata.data.timestamp,
+                            nonceStr: jsondata.data.nonceStr,
+                            signature: jsondata.data.signature,
+                            jsApiList: [
+                                'onMenuShareTimeline', 'onMenuShareAppMessage','onMenuShareQQ'
+                            ]
+                        });
+                        wx.ready(function () {
+                            //bgMusic.play();
+                            wx.onMenuShareTimeline({
+                                title: shareData.title, // 分享标题
+                                link: shareData.link||location.href, // 分享链接
+                                imgUrl: shareData.imgUrl, // 分享图标
+                                success: function (res) {
+                                    callback&&callback();
+                                },
+                                cancel: function (res) {
+
+                                }
+                            });
+                            wx.onMenuShareAppMessage({
+                                title: shareData.title, // 分享标题
+                                desc: shareData.desc, // 分享描述
+                                link: shareData.link||location.href, // 分享链接
+                                imgUrl: shareData.imgUrl, // 分享图标
+                                type: '', // 分享类型,music、video或link，不填默认为link
+                                dataUrl: '', // 如果type是music或video，则要提供数据链接，默认为空
+                                success: function () {
+                                    callback&&callback();
+                                },
+                                cancel: function () {
+
+                                }
+                            });
+                            wx.onMenuShareQQ({
+                                title: shareData.title, // 分享标题
+                                desc: shareData.desc, // 分享描述
+                                link: shareData.link||location.href, // 分享链接
+                                imgUrl: shareData.imgUrl, // 分享图标
+                                success: function () { 
+                                    callback&&callback();
+                                },
+                                cancel: function () { 
+                                   // 用户取消分享后执行的回调函数
+                                }
+                            });
+                            wx.error(function(res){
+                                //alert(JSON.stringify(res));
+                            });
+                        });
+                    }
+                });
+            },
+
+            // 微信分享动态更新,shareData:{link: "xxx", title: "分享标题", desc: "分享描述", imgUrl: "http://guangdong.sinaimg.cn/2016/1022/U12799P693DT20161022231007.jpg"  }
+            refleshWeixinShare: function(shareData,callback){
+                wx.onMenuShareTimeline({
+                    title: shareData.title, // 分享标题
+                    link: shareData.link||location.href, // 分享链接
+                    imgUrl: shareData.imgUrl, // 分享图标
+                    success: function (res) {
+                        callback&&callback();
+                    },
+                    cancel: function (res) {
+
+                    }
+                });
+                wx.onMenuShareAppMessage({
+                    title: shareData.title, // 分享标题
+                    desc: shareData.desc, // 分享描述
+                    link: shareData.link||location.href, // 分享链接
+                    imgUrl: shareData.imgUrl, // 分享图标
+                    type: '',
+                    dataUrl: '',
+                    success: function () {
+                        callback&&callback();
+                    },
+                    cancel: function () {
+
+                    }
+                });
+                wx.onMenuShareQQ({
+                    title: shareData.title, // 分享标题
+                    desc: shareData.desc, // 分享描述
+                    link: shareData.link||location.href, // 分享链接
+                    imgUrl: shareData.imgUrl, // 分享图标
+                    success: function () { 
+                        callback&&callback();
+                    },
+                    cancel: function () { 
+                       // 用户取消分享后执行的回调函数
+                    }
+                });
+            },
+
+            // 发微博接口,需登陆微博
+            sendWeibo: function(data,callback){ //data: {content:"测试",pic:"xxx.jpg"}
+                var site_id = 901;
+                var app_id = 196;
+                var get_token_url = "http://mblogv2.city.sina.com.cn/interface/tcommonv2/cookie_auth/postaction/get_token.php";
+                var addmblog_post_url = "http://mblogv2.city.sina.com.cn/interface/tcommonv2/cookie_auth/postaction/json_add_mblog_new.php";      
+                var content = data.content;
+                var pic = data.pic||"";
+                $.ajax({ // 第一次jsonp请求获取token
+                    url:get_token_url, 
+                    data:{
+                        site_id:site_id,
+                        app_id:app_id
+                    },
+                    dataType:"jsonp",
+                    success:function(data){
+                        if(data && data.error == "0"){ 
+                            $.ajax({
+                                url:addmblog_post_url,
+                                data:{
+                                    content: content, // 发微博的内容
+                                    pic_url: pic, // 发微博的图片
+                                    site_id: site_id,
+                                    app_id: app_id,
+                                    t: 'jsonp', 
+                                    token: data.token, // 第一次请求获取到的token
+                                    x: Math.random()  
+                                },
+                                dataType:"jsonp",
+                                success: function(data) {
+                                    sending = false;
+                                    if ( data && data.error == "0" ) { 
+                                        // alert("发送微博成功！");
+                                        callback&&callback();
+                                    }else {
+                                        alert("发送微博失败！");
+                                        console.log(data);
+                                        //alert(data.errmsg);   
+                                    }
+                                },
+                                error: function(data) {
+                                    console.log(data);
+                                }
+                            }); 
+                        }
+                        
+                    },
+                    error: function(data) {
+                        console.log(data);
+                    }
+                });
+            },
+            // 投票接口 ids: 多个id用","拼接
+            vote: function(ids,callback) {
+                if(this.votting) {
+                    return false;
+                }
+                this.votting = true;
+                var _this = this;
+                var ids = ids + "";
+                var idsArr = ids.split(",");
+                var maxLen = idsArr.length;
+                var votedLen = 0;
+                if(maxLen == 0) {
+                    this.votting = false;
+                    return;
+                }
+                for(var i = 0; i < idsArr.length; i++) {
+                    var id = idsArr[i];
+                    $.ajax({
+                        url: "http://news.gd.sina.com.cn/market/c/interfaceclick2015/click",              //请求地址
+                        type: "get",                       //请求方式
+                        data: {id: id, type:3,ttype:1},        //请求参数
+                        dataType: "jsonp",
+                        success: function (data) {
+                        // 此处放成功后执行的代码
+                            // console.log(data);
+                            if (data.error === 0) {
+                                votedLen++;
+                                if(votedLen == maxLen) {
+                                    callback && callback();
+                                }
+                            } else if (data.error === 5) {
+                                votedLen++;
+                                alert('点赞太过频繁!');
+                            } else if (data.error === 6) {
+                                votedLen++;
+                                alert('你已经点赞了!');
+                            } else {
+                                votedLen++;
+                                alert('点赞失败!');
+                            }
+                            if(votedLen == maxLen) {
+                                _this.votting = false;
+                            }
+                        },
+                        error: function (data) {
+                        // 此处放失败后执行的代码
+                            console.log(data);
+                            votedLen++;
+                            if(votedLen == maxLen) {
+                                _this.votting = false;
+                            }
+                        }
+                    });
+                }
+            },
+            // 获取点赞数量  ids: 多个id用","拼接
+            getVote: function(ids,callback) {
+                if(this.getVotting) {
+                    return false;
+                }
+                this.getVotting = true;
+                var _this = this;
+                $.ajax({
+                    url: "http://news.gd.sina.com.cn/market/c/interfaceclick2015/clicklist",              //请求地址
+                    type: "get",                       //请求方式
+                    data: {id: ids},        //请求参数
+                    dataType: "jsonp",
+                    success: function (data) {
+                    // 此处放成功后执行的代码
+                        // console.log(data);
+                        if (data.error === 0) {
+                            callback && callback(data.data);
+                        }
+                        _this.getVotting = false;
+                    },
+                    error: function (data) {
+                    // 此处放失败后执行的代码
+                        console.log(data);
+                        _this.getVotting = false;
+                    }
+                });
+            },
+            // 清除非当天未填信息的中奖资料 【默认调用】
+            clearInfo: function(callback){ 
+                $.ajax({
+                    url: "http://interface.gd.sina.com.cn/gdif/huadi201611/hd_clear.html",              //请求地址
+                    type: "get",                       //请求方式
+                    data: {},        //请求参数
+                    dataType: "jsonp",
+                    success: function (data) {
+                    // 此处放成功后执行的代码
+                        // console.log(data);
+                        if(data.error==0){  
+                            callback && callback();
+                        }
+                    },
+                    error: function (data) {
+                    // 此处放失败后执行的代码
+                        console.log(data);
+                    }
+                });
+            },
+            //基础信息入库【默认调用】
+            registUser: function(callback){ 
+                var _this = this;
+                $.ajax({
+                    url: "http://interface.gd.sina.com.cn/gdif/huadi201611/hd_user.html",              //请求地址
+                    type: "get",                       //请求方式
+                    data: {uid: _this.openid, type: _this.openidType},        //请求参数
+                    dataType: "jsonp",
+                    success: function (data) {
+                    // 此处放成功后执行的代码
+                        console.log(data);
+                        if(data.error==0||data.error==4){  
+                            callback && callback();
+                        }
+                    },
+                    error: function (data) {
+                    // 此处放失败后执行的代码
+                        console.log(data);
+                    }
+                });
+            },
+
+            // 表白入库 msgData: {name: "姓名", content: "内容"},callback(id): id为表白id
+            submitMsg: function(msgData,callback){ 
+                if(this.submitMsging) {
+                    return false;
+                }
+                this.submitMsging = true;
+                var _this = this;
+                $.ajax({
+                    url: "http://interface.gd.sina.com.cn/gdif/huadi201611/hd_biaobai_add.html",              //请求地址
+                    type: "get",                       //请求方式
+                    data: {uid: _this.openid, name: msgData.name, content: msgData.content},        //请求参数
+                    dataType: "jsonp",
+                    success: function (data) {
+                    // 此处放成功后执行的代码
+                        // console.log(data);
+                        if(data.error==0){  
+                            callback && callback(data.data);
+                        }
+                        _this.submitMsging = false;
+                    },
+                    error: function (data) {
+                    // 此处放失败后执行的代码
+                        console.log(data);
+                        _this.submitMsging = false;
+                    }
+                });
+            },
+
+            // 表白读取
+            getMsg: function(id,callback){ //表白ID,callback({"name":"\u6d4b\u8bd5","content":"\u5185\u5bb9","time":"2016-11-17 17:18:17"})
+                if(this.getMsging) {
+                    return false;
+                }
+                this.getMsging = true;
+                var _this = this;
+                $.ajax({
+                    url: "http://interface.gd.sina.com.cn/gdif/huadi201611/hd_biaobai_view.html",              //请求地址
+                    type: "get",                       //请求方式
+                    data: {id: id},        //请求参数
+                    dataType: "jsonp",
+                    success: function (data) {
+                    // 此处放成功后执行的代码
+                        // console.log(data);
+                        if(data.error==0){  
+                            callback && callback(data.data);
+                        }
+                        _this.getMsging = false;
+                    },
+                    error: function (data) {
+                    // 此处放失败后执行的代码
+                        console.log(data);
+                        _this.getMsging = false;
+                    }
+                });
+            },
+
+            // 抽奖
+            getAward: function(callback){ //callback(data),data: {isAwarded: false/true, award: 0/1/2/3} 
+                if(this.getAwarding) {
+                    return false;
+                }
+                this.getAwarding = true;
+                var _this = this; 
+                var result = {isAwarded:false,award:0};
+                $.ajax({
+                    url: "http://interface.gd.sina.com.cn/gdif/huadi201611/hd_cj.html",              //请求地址
+                    type: "get",                       //请求方式
+                    data: { uid: _this.openid },        //请求参数
+                    dataType: "jsonp",
+                    success: function (data) {
+                    // 此处放成功后执行的代码
+                        console.log(data);
+                        if(data.error==0||data.error==3) {  
+                            result.isAwarded = false;
+                            result.award = data.data; 
+                        }else if(data.error==7) {
+                            result.isAwarded = false;
+                            result.award = 0;
+                        }else if(data.error==4) {
+                            result.isAwarded = true;
+                            result.award = data.data;
+                        }
+                        callback && callback(result);
+                        _this.getAwarding = false;
+                    },
+                    error: function (data) {
+                    // 此处放失败后执行的代码
+                        console.log(data);
+                        _this.getAwarding = false;
+                    }
+                });
+            },
+
+            // 中奖信息入库
+            submitInfo: function(infoData,callback) { //infoData : {name: "",mobile: "",address:""}
+                var _this = this;
+                if(_this.submitInfoing){
+                    return false;
+                }
+                _this.submitInfoing = true;
+                $.ajax({
+                    url: "http://interface.gd.sina.com.cn/gdif/huadi201611/hd_cj_add.html",              //请求地址
+                    type: "get",                       //请求方式
+                    data: { uid: _this.openid,name:infoData.name,mobile: infoData.mobile,address: infoData.address },        //请求参数
+                    dataType: "jsonp",
+                    success: function (data) {
+                    // 此处放成功后执行的代码
+                        // console.log(data);
+                        if(data.error==0) {  
+                            callback&&callback();
+                        }else if(data.error==6) {
+                            alert("已经填过资料");
+                        }else if(data.error==999) {
+                            alert("手机号码格式有误！");
+                        }else {
+                            alert("提交失败");
+                        }
+                        _this.submitInfoing = false;
+                    },
+                    error: function (data) {
+                    // 此处放失败后执行的代码
+                        console.log(data);
+                        _this.submitInfoing = false;
+                    }
+                });
+            }
+
+        };
+
+ 
+        var shareData = {
+            // link: "http://gd.sina.com.cn/m/2016/hzlh/index.html",
+            title: "分享标题",
+            desc: "分享描述",
+            imgUrl: "http://guangdong.sinaimg.cn/2016/1022/U12799P693DT20161022231007.jpg"
+        }
+        api.weixinShare(shareData,function(){
+            // shareData.link = "http://gd.sina.com.cn/m/2016/hzlh/index.html?oid=123",
+            shareData.title = "更改分享标题",
+            shareData.desc = "更改分享描述",
+            refleshWeixinShare(shareData,function(){
+                alert("更改分享成功");
+            });
+        });
+
+
+        api.getVote("160,161,162,163",function(data) {
+            console.log(data);
+            api.vote("160,161,162,163",function(){
+                alert("ok");
+                api.getVote("160,161,162,163",function(data){
+                    console.log(data);
+                    api.vote("160,161,162,164",function(){
+                        
+                    });
+                });
+            });
+        });
+
+        // api.clearInfo();
+        // api.doubleBind(function(){//双向绑定
+        //     console.log("绑定成功");
+        //     api.registUser(function(){//基础信息入库
+        //         console.log("基础信息入库成功");
+        //         api.submitMsg({name:"测试姓名",content:"测试内容"},function(id){ //表白入库
+        //             console.log("表白入库成功");
+        //             api.getMsg(id,function(data){ //表白读取
+        //                 console.log("表白读取成功:");
+        //                 console.log(data);
+        //                 api.getAward(function(result){ //抽奖
+        //                     console.log("抽奖结果:");
+        //                     console.log(result);
+        //                 });
+        //             });
+        //         }); 
+        //     });
+        // });
+        
+    </script>
+</head>
+<body>
+微信绑定,微博绑定,双向绑定,发微博接口,微信用户信息,微信分享
+</body>
+</html>

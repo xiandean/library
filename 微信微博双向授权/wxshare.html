@@ -1,0 +1,102 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <!--申明当前页面的编码集-->
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <!--网页标题-->
+    <title>微博/微信接口</title>
+    <!--网页关键词-->
+    <meta name="keywords" content="" />
+    <!--网页描述-->
+    <meta name="description" content="" />
+    <!--适配当前屏幕-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0,minimum-scale=1.0, user-scalable=0" />
+    <!--禁止自动识别电话号码-->
+    <meta name="format-detection" content="telephone=no" />
+    <!--禁止自动识别邮箱-->
+    <meta content="email=no" name="format-detection" />
+    <!--iphone中safari私有meta标签,允许全屏模式浏览,隐藏浏览器导航栏-->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <!--iphone中safari顶端的状态条的样式black(黑色)-->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <script src="http://guangdong.sinaimg.cn/subject/2016/0524/zepto.min.js"></script>
+    <script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+    <script>   
+       (function(){
+        $.ajax({
+            url:"http://news.gd.sina.com.cn/market/c/gd/wxjsapi/index.php",
+            data: {
+                url: location.href.split('#')[0]
+            },
+            dataType:"jsonp",
+            success:function(jsondata){
+                wx.config({
+                    debug: false,
+                    appId: jsondata.data.appId,
+                    timestamp: jsondata.data.timestamp,
+                    nonceStr: jsondata.data.nonceStr,
+                    signature: jsondata.data.signature,
+                    jsApiList: [
+                        'onMenuShareTimeline', 'onMenuShareAppMessage','onMenuShareQQ'
+                    ]
+                });
+                wx.ready(function () {
+                    // bgMusic.play();
+                    wx.onMenuShareTimeline({
+                        title: 'V影响力汇聚花城', // 分享标题
+                        imgUrl: 'http://guangdong.sinaimg.cn/subject/2017/0117/images/share.jpg', // 分享图标
+                        success: function (res) {
+
+                        },
+                        cancel: function (res) {
+
+                        }
+                    });
+
+                    wx.onMenuShareAppMessage({
+                        title: 'V影响力汇聚花城', // 分享标题
+                        desc: '来跟大V一起品读花城韵味，感受花城发展吧！', // 分享描述
+                        link: 'http://gd.sina.com.cn/m/2017/vyingxiang/index.html', // 分享链接
+                        imgUrl: 'http://guangdong.sinaimg.cn/subject/2017/0117/images/share.jpg', // 分享图标
+                        type: '',
+                        dataUrl: '',
+                        success: function () {
+
+                        },
+                        cancel: function () {
+
+                        }
+                    });
+
+                    wx.onMenuShareQQ({
+                        title: 'V影响力汇聚花城', // 分享标题
+                        desc: '来跟大V一起品读花城韵味，感受花城发展吧！', // 分享描述
+                        link: 'http://gd.sina.com.cn/m/2017/vyingxiang/index.html', // 分享链接
+                        imgUrl: 'http://guangdong.sinaimg.cn/subject/2017/0117/images/share.jpg', // 分享图标
+                        type: '',
+                        dataUrl: '',
+                        success: function () {
+
+                        },
+                        cancel: function () {
+
+                        }
+                    });
+                    wx.error(function(res){
+                        //alert(JSON.stringify(res));
+                    });
+                })
+
+            }
+        })
+
+    })();
+
+
+
+    </script>
+</head>
+<body>
+投票接口
+</body>
+</html>
