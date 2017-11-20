@@ -61,3 +61,8 @@ var $URL=function(){
         }
     };
 }();
+
+// 用法：
+    // var utf8String = "utf8中文";
+    // var gbkCode = $URL.encode(utf8String);
+    // var gbkString = $URL.decode(gbkCode);
