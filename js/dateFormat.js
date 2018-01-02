@@ -27,15 +27,13 @@ Date.prototype.Format = function(format){
 // alert(new Date().Format("yyyyMMdd")); 
 // alert(new Date().Format("yyyy-MM-dd hh:mm:ss"));
 
-
-
 //时间比较（yyyy-MM-dd HH:mm:ss）
 function compareTime(startTime, endTime) {
     var startTimes = startTime.substring(0, 10).split('-');
     var endTimes = endTime.substring(0, 10).split('-');
     startTime = startTimes[1] + '-' + startTimes[2] + '-' + startTimes[0] + ' ' + startTime.substring(10, 19);
     endTime = endTimes[1] + '-' + endTimes[2] + '-' + endTimes[0] + ' ' + endTime.substring(10, 19);
-    var thisResult = (Date.parse(endTime) - Date.parse(startTime)) / 3600 / 1000;
+    var thisResult = (Date.parse(endTime.replace(/-/g, '/')) - Date.parse(startTime.replace(/-/g, '/'))) / 3600 / 1000;
     if (thisResult < 0) {
         return -1;
     } else if (thisResult > 0) {
@@ -44,5 +42,15 @@ function compareTime(startTime, endTime) {
         return 0
     } else {
         return '异常';
+    }
+}
+
+function timeToDo (time, callback) {
+    var time = time || "2018-01-01 00:00:00";
+    var now = new Date().Format("yyyy-MM-dd hh:mm:ss");
+    if (compareTime(time, now) == -1) {
+        if (callback) {
+            callback();
+        }
     }
 }
