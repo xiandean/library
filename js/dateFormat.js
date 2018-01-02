@@ -45,12 +45,16 @@ function compareTime(startTime, endTime) {
     }
 }
 
-function timeToDo (time, callback) {
+function timeToDo (time, onAfter, onBefore) {
     var time = time || "2018-01-01 00:00:00";
     var now = new Date().Format("yyyy-MM-dd hh:mm:ss");
-    if (compareTime(time, now) == -1) {
-        if (callback) {
-            callback();
+    if (compareTime(now, time) == 1) {
+        if (onBefore) {
+            onBefore();
+        }
+    } else {
+        if (onAfter) {
+            onAfter()
         }
     }
 }
