@@ -45,16 +45,17 @@ function compareTime(startTime, endTime) {
     }
 }
 
-function timeToDo (time, onAfter, onBefore) {
-    var time = time || "2018-01-01 00:00:00";
+// options: {time: "yyyy-MM-dd hh:mm:ss"}
+function timeToDo (options) {
+    var time = options.time || "2018-01-01 00:00:00";
     var now = new Date().Format("yyyy-MM-dd hh:mm:ss");
     if (compareTime(now, time) == 1) {
-        if (onBefore) {
-            onBefore();
+        if (options.beforeTime) {
+            options.beforeTime();
         }
     } else {
-        if (onAfter) {
-            onAfter()
+        if (options.afterTime) {
+            options.afterTime()
         }
     }
 }
