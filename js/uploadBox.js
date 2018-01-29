@@ -9,6 +9,7 @@ function uploadBox(config) {
     this.G;
     this.C;
     this.gestured = false;
+    this.ratio;
     this.init();
 }
 uploadBox.prototype = {
@@ -53,12 +54,12 @@ uploadBox.prototype = {
             _this.uploadBitmap = new createjs.Bitmap(img);
             _this.uploadBitmap.regX = 0,
             _this.uploadBitmap.regY = 0,
-            ratio = (_this.uploadBitmap.image.width/_this.uploadBitmap.image.height) >= (_this.stage.canvas.width/_this.stage.canvas.height)?1:0;
+            _this.ratio = (_this.uploadBitmap.image.width/_this.uploadBitmap.image.height) >= (_this.stage.canvas.width/_this.stage.canvas.height)?1:0;
             switch(_this.uploadEXIF){
                 case 6:
                     _this.transform.a = 90;
-                    ratio = (_this.uploadBitmap.image.height/_this.uploadBitmap.image.width) >= (_this.stage.canvas.width/_this.stage.canvas.height)?1:0;
-                    if(!ratio) {
+                    _this.ratio = (_this.uploadBitmap.image.height/_this.uploadBitmap.image.width) >= (_this.stage.canvas.width/_this.stage.canvas.height)?1:0;
+                    if(!_this.ratio) {
                         _this.transform.s = _this.stage.canvas.width/_this.uploadBitmap.image.height;
                         _this.transform.x = _this.stage.canvas.width;
                         _this.transform.y = (_this.stage.canvas.height-_this.uploadBitmap.image.width*_this.transform.s)/2;
@@ -69,7 +70,7 @@ uploadBox.prototype = {
                     break;
                 case 3:
                     _this.transform.a = 180;
-                    if(!ratio) {
+                    if(!_this.ratio) {
                         _this.transform.s = _this.stage.canvas.width/_this.uploadBitmap.image.width;
                         _this.transform.x = _this.uploadBitmap.image.width*_this.transform.s;
                         _this.transform.y = (_this.stage.canvas.height+_this.uploadBitmap.image.height*_this.transform.s)/2;
@@ -80,7 +81,7 @@ uploadBox.prototype = {
                     }
                     break; 
                 default:
-                    if(!ratio) {
+                    if(!_this.ratio) {
                         _this.transform.s = _this.stage.canvas.width/_this.uploadBitmap.image.width;
                         _this.transform.y = (_this.stage.canvas.height-_this.uploadBitmap.image.height*_this.transform.s)/2;
                     }else {
