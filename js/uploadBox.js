@@ -9,8 +9,8 @@ function uploadBox(config) {
     this.G;
     this.C;
     this.gestured = false;
-    this.ratio;
     this.init();
+    this.ratio;
 }
 uploadBox.prototype = {
     init: function() {
@@ -20,7 +20,7 @@ uploadBox.prototype = {
         this.choose();
         this.gesture();
         if(this.config.uploadButton) {
-            document.getElementById(this.config.uploadButton).addEventListener("touchstart",function(){
+            document.getElementById(this.config.uploadButton).addEventListener("click",function(){
                 _this.submit();
             });
         }
@@ -105,6 +105,9 @@ uploadBox.prototype = {
     choose: function() {
         var _this = this;
         document.getElementById(this.config.chooseButton).onchange = function(J) {
+            if(_this.config.onChange) {
+                _this.config.onChange();
+            }
             J.preventDefault();
             _this.resetParam();
             if (document.getElementById(_this.config.chooseButton).files.length === 0) {
@@ -209,6 +212,10 @@ uploadBox.prototype = {
         this.stage.update();
     },
     submit: function() {
+        if(!this.uploadBitmap) {
+          this.config.callback && this.config.callback();
+          return;
+        }
         var H = document.getElementById(this.config.uploadCanvas);
         this.uploadSrc = H.toDataURL("image/png", 1);
         if(this.config.uploadServered) {
